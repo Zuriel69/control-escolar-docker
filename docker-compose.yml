@@ -1,0 +1,37 @@
+services:
+  servidor-web:
+    build: .
+    container_name: servidor_php
+    ports:
+      - "8081:80"
+    depends_on:
+      servidor-bd:
+        condition: service_healthy
+    networks:
+      - red-escolar
+
+  servidor-bd:
+    image: mariadb:11
+    container_name: servidor_mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: admin123
+      MARIADB_DATABASE: control_escolar
+      MARIADB_USER: usuario
+      MARIADB_PASSWORD: clave123
+    volumes:
+      - datos_mariadb:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - red-escolar
+
+networks:
+  red-escolar:
+    driver: bridge
+
+volumes:
+  datos_mariadb:
